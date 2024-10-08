@@ -21,6 +21,6 @@ const Room = sequelize.define('Room', {
   },
 });
 
-Room.belongsTo(Hotel); // Relación con Hotel
+Room.belongsTo(Hotel); 
 
 module.exports = Room;

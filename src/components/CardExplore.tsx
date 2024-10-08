@@ -36,7 +36,10 @@ const CardExplore: React.FC<CardExploreProps> = ({ id, image, title, description
 
         {/* Botón de "Más información" */}
         <div className="flex justify-between mt-4">
-          <button onClick={handleMoreInfo} className="text-blue-500 hover:underline">
+          <button
+            onClick={handleMoreInfo}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md"
+          >
             Más información
           </button>
         </div>

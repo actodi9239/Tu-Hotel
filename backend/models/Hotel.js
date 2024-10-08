@@ -1,23 +1,53 @@
-const { DataTypes } = require('sequelize');
+const { Model, DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
+const Comment = require('./Comment'); // Asegúrate de que la ruta es correcta
 
-const Hotel = sequelize.define('Hotel', {
-  name: {
+class Hotel extends Model {}
+
+Hotel.init({
+  hotelName: {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  location: {
+  address: {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  pricePerNight: {
-    type: DataTypes.DECIMAL,
+  city: {
+    type: DataTypes.STRING,
     allowNull: false,
   },
-  rating: {
-    type: DataTypes.FLOAT,
-    allowNull: true,
+  state: {
+    type: DataTypes.STRING,
+    allowNull: false,
   },
+  zipCode: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  stars: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  rooms: {
+    type: DataTypes.JSON, // Cambia según sea necesario
+    allowNull: false,
+  },
+  amenities: {
+    type: DataTypes.JSON, // Cambia según sea necesario
+    allowNull: false,
+  },
+  images: {
+    type: DataTypes.JSON,
+    allowNull: false,
+  },
+}, {
+  sequelize,
+  modelName: 'Hotel',
 });
+
+// Define la relación entre Hotel y Comment
+Hotel.hasMany(Comment, { foreignKey: 'hotelId' });
+Comment.belongsTo(Hotel, { foreignKey: 'hotelId' });
 
 module.exports = Hotel;

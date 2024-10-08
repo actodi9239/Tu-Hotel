@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+import axios from 'axios';
 
 const Registration: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -23,20 +24,47 @@ const Registration: React.FC = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     if (formData.password !== formData.confirmPassword) {
       setErrors({ ...errors, passwordMismatch: true });
-    } else {
-      setErrors({ ...errors, passwordMismatch: false });
-      console.log('Form submitted:', formData);
-      // Aquí puedes agregar la lógica para registrar al usuario
+      return; // Detener la ejecución si hay un error
+    }
+
+    setErrors({ ...errors, passwordMismatch: false });
+
+    try {
+      // Hacer la solicitud POST al backend
+      const response = await axios.post('http://localhost:3001/api/register', {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        country: formData.country,
+        countryCode: formData.countryCode,
+        phoneNumber: formData.phoneNumber,
+        email: formData.email,
+        password: formData.password,
+      });
+
+      console.log('User registered successfully:', response.data);
+
+    } catch (error: any) { // Cambiado a 'any'
+      console.error('Error registering user:', error);
+
+      // Mostrar el mensaje de error recibido del servidor
+      if (error.response && error.response.data) {
+        const serverMessage = error.response.data.message || 'Error desconocido';
+        alert(serverMessage); // Puedes usar un modal o un toast en lugar de alert
+      } else {
+        alert('Error al comunicarse con el servidor.');
+      }
     }
   };
 
+
   const handleGoogleSuccess = (response: any) => {
     console.log("Google Login Success:", response);
-    // Aquí manejas el login exitoso de Google
+
   };
 
   const handleGoogleFailure = () => {
@@ -49,7 +77,7 @@ const Registration: React.FC = () => {
         <Navbar />
         <div className="max-w-screen-sm mx-auto p-6 lg:p-8">
           <h1 className="text-3xl font-bold mb-6">Regístrate en Hoteles de lujo</h1>
-          
+
           {/* Formulario de registro */}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>

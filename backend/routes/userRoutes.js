@@ -1,8 +1,11 @@
 const express = require('express');
-const { registerUser, loginUser } = require('../controllers/userController');
+const { register, login } = require('../controllers/userController');  
+const { createComment } = require('../controllers/commentController'); // Asegúrate de que la importación sea correcta
+
 const router = express.Router();
 
-router.post('/register', registerUser);
-router.post('/login', loginUser);
+router.post('/register', register);
+router.post('/login', login);
+router.post('/comments', createComment); // Ruta para crear comentarios
 
 module.exports = router;

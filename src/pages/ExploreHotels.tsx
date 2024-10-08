@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
 import CardExplore from '../components/CardExplore';
+import axios from 'axios';
 
 const ExploreHotels: React.FC = () => {
   const [searchParams, setSearchParams] = useState({
@@ -9,34 +10,36 @@ const ExploreHotels: React.FC = () => {
     rooms: '',
     guests: '',
   });
+  const [hotels, setHotels] = useState([]); // Estado para almacenar hoteles
+  const [loading, setLoading] = useState(true); // Estado para manejar la carga
+
+  useEffect(() => {
+    const fetchHotels = async () => {
+      try {
+        const response = await axios.get('http://localhost:3001/api/hotels'); // Obtener hoteles desde la API
+        setHotels(response.data);
+      } catch (error) {
+        console.error('Error fetching hotels:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHotels();
+  }, []); // Llama a la API al montar el componente
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchParams({ ...searchParams, [e.target.name]: e.target.value });
   };
 
   const handleSearch = () => {
-    // Implementar la lógica de búsqueda
     console.log('Realizando búsqueda con:', searchParams);
+    // Aquí puedes implementar la lógica de búsqueda según los parámetros
   };
 
-  const hotels = [
-    {
-      id: "1",
-      image: "/src/assets/hotel1.jpg",
-      title: "The Ritz-Carlton Key Biscayne",
-      description: "Alojamiento entero • 1 habitación • Vistas al mar",
-      price: "$250 por noche",
-      rating: "4.7 (44)",
-    },
-    {
-      id: "2",
-      image: "/src/assets/hotel2.jpg",
-      title: "Hotel Nikko",
-      description: "Alojamiento entero • 2 habitaciones",
-      price: "$180 por noche",
-      rating: "4.5 (100)",
-    }
-  ];
+  if (loading) {
+    return <div>Loading...</div>; // Muestra un mensaje de carga
+  }
 
   return (
     <div className="bg-[#111518] min-h-screen text-white">
@@ -91,15 +94,15 @@ const ExploreHotels: React.FC = () => {
       <section className="py-10 max-w-screen-xl mx-auto px-4 lg:px-6">
         <h2 className="text-3xl font-bold mb-8">Descubre alojamientos</h2>
         <div className="space-y-6">
-          {hotels.map((hotel) => (
+          {hotels.map((hotel: any) => (
             <CardExplore
               key={hotel.id}
               id={hotel.id}
-              image={hotel.image}
-              title={hotel.title}
-              description={hotel.description}
-              price={hotel.price}
-              rating={hotel.rating}
+              image={`http://localhost:3001/uploads/${hotel.images[0]}`} // Asegúrate de que la imagen sea accesible
+              title={hotel.hotelName}
+              description={`${hotel.address}, ${hotel.city}`} // Puedes personalizar la descripción
+              price={`$${hotel.price || 'N/A'} por noche`} // Si necesitas mostrar el precio
+              rating={`${hotel.stars} estrellas`} // Muestra las estrellas como calificación
             />
           ))}
         </div>

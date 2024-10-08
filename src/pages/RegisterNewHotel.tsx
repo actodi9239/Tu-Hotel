@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
+import axios from 'axios';
 
 interface Room {
   roomType: string;
@@ -76,15 +77,47 @@ const RegisterNewHotel: React.FC = () => {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const uploadedFiles = Array.from(e.target.files);
-      setHotelData({ ...hotelData, images: uploadedFiles });
+      const validImages = uploadedFiles.filter((file) => file.type.startsWith('image/'));
+
+      if (validImages.length > 0) {
+        setHotelData({ ...hotelData, images: validImages });
+      } else {
+        console.error('Solo se permiten archivos de imagen');
+      }
     }
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log('Hotel data submitted:', hotelData);
-    // Aquí puedes agregar la lógica para enviar los datos a tu backend
+  
+    const formData = new FormData();
+  
+    formData.append('hotelName', hotelData.hotelName);
+    formData.append('address', hotelData.address);
+    formData.append('city', hotelData.city);
+    formData.append('state', hotelData.state);
+    formData.append('zipCode', hotelData.zipCode);
+    formData.append('stars', hotelData.stars);
+    formData.append('rooms', JSON.stringify(hotelData.rooms)); // Asegúrate de que esto sea un objeto JSON
+    formData.append('amenities', JSON.stringify(hotelData.amenities));
+  
+    // Añade las imágenes al FormData
+    hotelData.images.forEach((image) => {
+      formData.append('images', image); // Verifica que el campo 'images' es lo que multer espera
+    });
+  
+    try {
+      const response = await axios.post('http://localhost:3001/api/hotels', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      console.log('Hotel creado:', response.data);
+    } catch (error) {
+      console.error('Error creando el hotel:', error);
+    }
   };
+  
 
   return (
     <div className="bg-[#111518] min-h-screen text-white">

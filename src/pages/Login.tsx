@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import Navbar from '../components/Navbar';
+import axios from 'axios';
 
 const Login: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -13,15 +14,33 @@ const Login: React.FC = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    // Aquí agregas la lógica de autenticación con tu backend
+    try {
+      const response = await axios.post('http://localhost:3001/api/login', formData, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      console.log('Login successful:', response.data);
+      // Guardar el token JWT en localStorage
+      localStorage.setItem('token', response.data.token);
+
+      // Redirigir al Home en lugar de /profile
+      window.location.href = '/'; 
+    } catch (error: any) {  
+      if (error.response) {
+        console.error('Error logging in:', error.response.data);
+      } else {
+        console.error('Error:', error.message);
+      }
+    }
   };
 
   const handleGoogleSuccess = (response: any) => {
     console.log('Google Login Success:', response);
-    // Aquí manejas la autenticación con Google
+    // Aquí autenticación con Google
   };
 
   const handleGoogleFailure = () => {

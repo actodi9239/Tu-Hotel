@@ -18,7 +18,7 @@ const Reservation = sequelize.define('Reservation', {
   },
 });
 
-Reservation.belongsTo(Hotel); // Relación con Hotel
-Reservation.belongsTo(User);  // Relación con Usuario
+Reservation.belongsTo(Hotel); 
+Reservation.belongsTo(User);  
 
 module.exports = Reservation;

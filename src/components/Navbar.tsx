@@ -1,15 +1,20 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Navbar: React.FC = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);  // Cambiamos el estado inicial a "no logueado"
-
-  const handleLogin = () => {
-    setIsLoggedIn(true);  // Cambia el estado a "logueado" cuando el usuario presiona "Iniciar Sesión"
-  };
+  const navigate = useNavigate();
+  
+  // Verificamos si el usuario está logueado mediante el token JWT en localStorage
+  const isLoggedIn = !!localStorage.getItem('token'); 
 
   const handleLogout = () => {
-    setIsLoggedIn(false);  // Cambia el estado a "no logueado" cuando el usuario presiona "Logout"
+    // Al hacer logout, removemos el token JWT de localStorage
+    localStorage.removeItem('token');
+    navigate('/');  // Redirige a la página de inicio
+  };
+
+  const handleLoginClick = () => {
+    navigate('/login');  // Redirige a la página de login
   };
 
   return (
@@ -32,7 +37,7 @@ const Navbar: React.FC = () => {
               <Link to="/reservation-history" className="text-white hover:text-gray-400">Reservation History</Link>
               <button
                 className="px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-800"
-                onClick={handleLogout}
+                onClick={handleLogout}  // Lógica de logout
               >
                 Logout
               </button>
@@ -44,7 +49,7 @@ const Navbar: React.FC = () => {
               </Link>
               <button
                 className="px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-800"
-                onClick={handleLogin}  // Llamada para loguear al usuario
+                onClick={handleLoginClick}  // Redirigir a la página de login
               >
                 Iniciar Sesión
               </button>

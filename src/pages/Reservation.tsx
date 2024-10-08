@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 
 const Reservation: React.FC = () => {
-  const navigate = useNavigate();  // Utilizamos el hook useNavigate para la redirección
+  const navigate = useNavigate();  
 
   const handleGoBack = () => {
-    navigate(-1);  // Esta línea redirige a la página anterior
+    navigate(-1);  
   };
 
   return (

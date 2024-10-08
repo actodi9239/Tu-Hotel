@@ -1,175 +1,206 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import axios from 'axios';
+
+interface User {
+  firstName: string;
+  lastName: string;
+}
 
 interface Hotel {
-  image: string;
-  name: string;
-  location: string;
-  rating: string;
-  reviews: string;
-  description: string;
-  price: string;
-  features: { key: string, value: string }[];
+  id: number;
+  hotelName: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  stars: number;
+  amenities: {
+    wifi: boolean;
+    pool: boolean;
+    parking: boolean;
+    shuttle: boolean;
+    petFriendly: boolean;
+  };
+  images: string[];
+  rooms: { roomType: string; price: number; beds: number; capacity: number }[];
+  comments: { username: string; text: string }[];
 }
 
 const HotelDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();  // Usar useNavigate para redirigir
-  const [isLoggedIn] = useState(true); // Simulación de login para comentarios
+  const navigate = useNavigate();
+  const [hotel, setHotel] = useState<Hotel | null>(null);
+  const [isLoggedIn] = useState(true); // Simula que el usuario está logueado
+  const [newComment, setNewComment] = useState('');
+  const [user, setUser] = useState<User | null>(null); // Añadir estado para el usuario logueado
 
-  const hotelData: { [key: string]: Hotel } = {
-    "1": {
-      image: '/src/assets/hotel1.jpg',
-      name: 'The Ritz-Carlton Key Biscayne',
-      location: 'Miami, Florida',
-      rating: '4.7',
-      reviews: '44',
-      description: 'Alojamiento entero • 1 habitación • Vistas al mar • Wi-Fi gratis • Desayuno incluido',
-      price: '$250 por noche',
-      features: [
-        { key: 'Tipo de habitación', value: 'Deluxe Room' },
-        { key: 'Cama', value: '1 King Bed' },
-        { key: 'Tamaño', value: '300 ft²' },
-        { key: 'Vista', value: 'Vista al mar' },
-        { key: 'Desayuno', value: 'Incluido' },
-        { key: 'Wi-Fi', value: 'Incluido' }
-      ]
-    },
-    "2": {
-      image: '/src/assets/hotel2.jpg',
-      name: 'Hotel Nikko',
-      location: 'San Francisco, California',
-      rating: '4.5',
-      reviews: '100',
-      description: 'Alojamiento entero • 2 habitaciones • Vista a la ciudad • Wi-Fi gratis',
-      price: '$180 por noche',
-      features: [
-        { key: 'Tipo de habitación', value: 'Suite Room' },
-        { key: 'Cama', value: '2 Queen Beds' },
-        { key: 'Tamaño', value: '400 ft²' },
-        { key: 'Vista', value: 'Vista a la ciudad' },
-        { key: 'Desayuno', value: 'No incluido' },
-        { key: 'Wi-Fi', value: 'Incluido' }
-      ]
-    }
+  useEffect(() => {
+    const fetchHotelDetails = async () => {
+      try {
+        const response = await axios.get(`http://localhost:3001/api/hotels/${id}`);
+        const hotelData = {
+          ...response.data.hotel,
+          comments: response.data.hotel.comments || [],
+          amenities: response.data.hotel.amenities || {},
+          rooms: response.data.hotel.rooms || []
+        };
+
+        setHotel(hotelData);
+      } catch (error) {
+        console.error('Error fetching hotel details:', error);
+        setHotel(null); // Limpia el estado si hay un error
+      }
+    };
+
+    const fetchUserDetails = async () => {
+      // Aquí deberías implementar la lógica para obtener los detalles del usuario logueado
+      // Esto es solo un ejemplo; reemplaza con tu lógica
+      const loggedInUser = { firstName: 'Nombre', lastName: 'Apellido' };
+      setUser(loggedInUser);
+    };
+
+    fetchHotelDetails();
+    fetchUserDetails(); // Llamar a la función para obtener el usuario
+  }, [id]);
+
+  const handleReserve = () => {
+    navigate(`/reservation`);
   };
 
-  const hotel = hotelData[id as string];
+  const handleCommentSubmit = async () => {
+    if (newComment.trim() === '') return;
+
+    try {
+      await axios.post('http://localhost:3001/api/comments', {
+        hotelId: hotel?.id,
+        username: `${user?.firstName} ${user?.lastName}`, // Usar el nombre y apellido del usuario
+        text: newComment,
+      });
+
+      // Actualiza el estado con el nuevo comentario
+      setHotel((prevHotel) => prevHotel ? {
+        ...prevHotel,
+        comments: [...prevHotel.comments, { username: `${user?.firstName} ${user?.lastName}`, text: newComment }]
+      } : prevHotel);
+      setNewComment('');
+    } catch (error) {
+      console.error('Error al enviar el comentario:', error);
+    }
+  };
 
   if (!hotel) {
     return <div>Hotel no encontrado</div>;
   }
 
-  // Al presionar el botón de reservar, redirigimos a la página de reserva
-  const handleReserve = () => {
-    navigate(`/reservation`);
-  };
-
   return (
     <div className="bg-[#111518] min-h-screen text-white">
       <Navbar />
       <div className="max-w-screen-xl mx-auto p-6 lg:p-8">
-        {/* Sección principal con la imagen, el nombre y la tabla de calificación */}
         <div className="flex flex-col lg:flex-row lg:items-start mb-8">
-          <img src={hotel.image} alt={hotel.name} className="w-full lg:w-1/2 h-auto object-cover rounded-lg shadow-lg" />
+          <img src={hotel.images[0]} alt={hotel.hotelName} className="w-full lg:w-1/2 h-auto object-cover rounded-lg shadow-lg" />
           <div className="lg:ml-8 mt-6 lg:mt-0 lg:w-1/2">
-            <h1 className="text-3xl font-bold mb-2">{hotel.name}</h1>
-            <p className="text-lg text-gray-400 mb-4">{hotel.location}</p>
+            <h1 className="text-3xl font-bold mb-2">{hotel.hotelName}</h1>
 
-            {/* Calificación numérica, estrellas y reseñas */}
-            <div className="flex items-center mb-4">
-              <h2 className="text-4xl font-bold">{hotel.rating}</h2>
-              <div className="ml-4 flex">
-                {[...Array(5)].map((_, index) => (
-                  <svg
-                    key={index}
-                    xmlns="http://www.w3.org/2000/svg"
-                    className={`h-6 w-6 ${index < Math.round(parseFloat(hotel.rating)) ? 'text-yellow-400' : 'text-gray-400'}`}
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.946 5.982h6.262c.969 0 1.371 1.24.588 1.81l-5.07 3.657 1.945 5.981c.3.922-.755 1.688-1.54 1.11l-5.07-3.656-5.072 3.656c-.783.577-1.838-.188-1.54-1.11l1.946-5.98-5.07-3.658c-.784-.57-.38-1.81.588-1.81h6.262l1.946-5.982z" />
-                  </svg>
-                ))}
-              </div>
-              <p className="ml-4 text-gray-400">{hotel.reviews} reviews</p>
-            </div>
-
-            {/* Gráfico de calificaciones refinado */}
-            <div className="mt-4 space-y-2">
-              {[5, 4, 3, 2, 1].map((rating) => (
-                <div key={rating} className="flex items-center space-x-2">
-                  <p className="w-4">{rating}</p>
-                  <div className="w-full bg-gray-700 rounded-full h-2">
-                    <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${rating * 10}%` }}></div>
-                  </div>
-                  <p className="w-12 text-right">{`${rating * 10}%`}</p>
-                </div>
-              ))}
-            </div>
+            {/* Características del hotel */}
+            <section className="p-6 mb-8">
+              <h2 className="text-xl font-semibold mb-4">Características del hotel</h2>
+              <table className="w-full text-left text-gray-400">
+                <tbody>
+                  <tr>
+                    <td className="py-2">Dirección</td>
+                    <td className="py-2">{hotel.address}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2">Ciudad</td>
+                    <td className="py-2">{hotel.city}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2">Estado</td>
+                    <td className="py-2">{hotel.state}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2">Código Postal</td>
+                    <td className="py-2">{hotel.zipCode}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2">Wi-Fi</td>
+                    <td className="py-2">{hotel.amenities.wifi ? 'Sí' : 'No'}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2">Piscina</td>
+                    <td className="py-2">{hotel.amenities.pool ? 'Sí' : 'No'}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2">Estacionamiento</td>
+                    <td className="py-2">{hotel.amenities.parking ? 'Sí' : 'No'}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2">Transporte al aeropuerto</td>
+                    <td className="py-2">{hotel.amenities.shuttle ? 'Sí' : 'No'}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2">Admite mascotas</td>
+                    <td className="py-2">{hotel.amenities.petFriendly ? 'Sí' : 'No'}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
           </div>
         </div>
 
-        {/* Características del hotel */}
-        <section className="bg-gray-800 rounded-lg p-6 mb-8">
-          <h2 className="text-2xl font-bold mb-4">Características del hotel</h2>
+        <section className="bg-gray-800 rounded-lg p-6 mt-8">
+          <h2 className="text-xl font-bold mb-4">Precios y disponibilidad</h2>
           <table className="w-full text-left text-gray-400">
+            <thead>
+              <tr>
+                <th className="py-2">Tipo de habitación</th>
+                <th className="py-2">Precio por noche</th>
+                <th className="py-2">Número de camas</th>
+                <th className="py-2">Capacidad</th>
+                <th className="py-2 text-right">Acciones</th>
+              </tr>
+            </thead>
             <tbody>
-              {hotel.features.map((feature, index) => (
+              {hotel.rooms.map((room, index) => (
                 <tr key={index}>
-                  <td className="py-2">{feature.key}</td>
-                  <td className="py-2">{feature.value}</td>
+                  <td className="py-2">{room.roomType}</td>
+                  <td className="py-2">{room.price}</td>
+                  <td className="py-2">{room.beds}</td>
+                  <td className="py-2">{room.capacity}</td>
+                  <td className="py-2 text-right">
+                    <button onClick={handleReserve} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
+                      Reservar
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </section>
 
-        {/* Tabla de precios */}
-        <section className="bg-gray-800 rounded-lg p-6 mb-8">
-          <h2 className="text-2xl font-bold mb-4">Precios y disponibilidad</h2>
-          <table className="w-full text-left text-gray-400">
-            <thead>
-              <tr>
-                <th className="py-2">Opciones</th>
-                <th className="py-2">Precio por noche</th>
-                <th className="py-2">Habitaciones disponibles</th>
-                <th className="py-2 text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td className="py-2">Reservar habitación</td>
-                <td className="py-2">{hotel.price}</td>
-                <td className="py-2">2 habitaciones restantes</td>
-                <td className="py-2 text-right">
-                  <button onClick={handleReserve} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
-                    Reservar
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </section>
-
-        {/* Comentarios */}
-        <section className="bg-gray-800 rounded-lg p-6">
+        <section className="bg-gray-800 rounded-lg p-6 mt-8">
           <h2 className="text-2xl font-bold mb-4">Comentarios</h2>
-          <div className="bg-gray-700 p-4 rounded-lg mb-4">
-            <p className="text-gray-300">Juan Pérez: Excelente servicio y ubicación.</p>
-          </div>
-          <div className="bg-gray-700 p-4 rounded-lg mb-4">
-            <p className="text-gray-300">María García: Las instalaciones eran impecables.</p>
-          </div>
+          {hotel.comments.length > 0 ? (
+            hotel.comments.map((comment, index) => (
+              <div key={index} className="bg-gray-700 p-4 rounded-lg mb-4">
+                <p className="text-gray-300">{comment.username}: {comment.text}</p>
+              </div>
+            ))
+          ) : (
+            <p className="text-gray-400">No hay comentarios aún.</p>
+          )}
 
           {isLoggedIn ? (
             <div>
               <textarea
                 className="w-full bg-gray-800 text-white rounded-lg p-4"
                 placeholder="Deja tu comentario..."
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
               ></textarea>
-              <button className="mt-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
+              <button onClick={handleCommentSubmit} className="mt-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
                 Enviar comentario
               </button>
             </div>

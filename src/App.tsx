@@ -5,8 +5,8 @@ import HotelDetails from './pages/HotelDetails';
 import Reservation from './pages/Reservation';
 import Registration from './pages/Registration';
 import Login from './pages/Login';
-import RegisterNewHotel from './pages/RegisterNewHotel';  // Importar RegisterNewHotel
-import ReservationHistory from './pages/ReservationHistory';  // Importar ReservationHistory
+import RegisterNewHotel from './pages/RegisterNewHotel';  
+import ReservationHistory from './pages/ReservationHistory'; 
 
 const App: React.FC = () => {
   return (
@@ -18,8 +18,8 @@ const App: React.FC = () => {
         <Route path="/reservation" element={<Reservation />} />
         <Route path="/register" element={<Registration />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/register-new-hotel" element={<RegisterNewHotel />} />  {/* Nueva ruta */}
-        <Route path="/reservation-history" element={<ReservationHistory />} />  {/* Nueva ruta */}
+        <Route path="/register-new-hotel" element={<RegisterNewHotel />} />
+        <Route path="/reservation-history" element={<ReservationHistory />} />
       </Routes>
     </Router>
   );
